@@ -1,66 +1,81 @@
 {
   "lexicon": 1,
   "id": "at.ofwork.purchase",
+  "revision": 1,
+  "description": "Verifiable attestation that a buyer DID acquired a specific digital artifact from a seller DID. The seller writes this record into their own AT Proto repo; their repo signature constitutes the attestation. A purchase record is not self-asserted by the buyer.",
   "defs": {
     "main": {
       "type": "record",
-      "description": "A purchase record representing a completed or pending transaction between a buyer and a seller for a specific work product or service.",
+      "description": "A seller-issued acquisition record binding a buyer DID to an artifact proof. Must be stored in the seller's repo. The proofRef MUST use a strong ref (uri + cid) to pin the artifact identity at time of sale — preventing retroactive substitution.",
       "key": "tid",
       "record": {
         "type": "object",
-        "required": ["buyer", "seller", "subject", "amount", "currency", "status", "createdAt"],
+        "required": [
+          "proofRef",
+          "buyerDid",
+          "sellerDid",
+          "price",
+          "purchasedAt"
+        ],
         "properties": {
-          "buyer": {
-            "type": "string",
-            "format": "did",
-            "description": "DID of the party making the purchase."
-          },
-          "seller": {
-            "type": "string",
-            "format": "did",
-            "description": "DID of the party receiving payment."
-          },
-          "subject": {
-            "type": "string",
-            "format": "at-uri",
-            "description": "AT-URI of the record being purchased (e.g. a listing, service, or deliverable)."
-          },
-          "amount": {
-            "type": "integer",
-            "description": "Purchase amount in the smallest unit of the given currency (e.g. cents for USD).",
-            "minimum": 0
-          },
-          "currency": {
-            "type": "string",
-            "description": "ISO 4217 currency code (e.g. USD, EUR).",
-            "maxLength": 3,
-            "minLength": 3
-          },
-          "status": {
-            "type": "string",
-            "knownValues": ["pending", "completed", "refunded", "disputed", "cancelled"],
-            "description": "Current state of the purchase."
-          },
-          "consentRef": {
-            "type": "string",
-            "format": "at-uri",
-            "description": "Optional reference to the at.ofwork.consent record governing this purchase."
-          },
           "proofRef": {
-            "type": "string",
-            "format": "at-uri",
-            "description": "Optional reference to the at.ofwork.proof record attesting to this purchase."
+            "type": "ref",
+            "ref": "com.atproto.repo.strongRef",
+            "description": "Immutable strong reference (AT URI + CID) to the at.ofwork.proof record identifying the artifact being sold. The CID component pins the proof at its exact version — it cannot be silently updated after the sale."
           },
-          "createdAt": {
+          "buyerDid": {
+            "type": "string",
+            "format": "did",
+            "description": "DID of the entity acquiring the artifact. Need not be an AT Proto DID — any resolvable DID method is acceptable (did:web, did:key, etc.)."
+          },
+          "sellerDid": {
+            "type": "string",
+            "format": "did",
+            "description": "DID of the entity conducting the sale. MUST match the DID of the AT Proto repo in which this record is stored, establishing the seller's cryptographic commitment to the transaction."
+          },
+          "price": {
+            "type": "ref",
+            "ref": "#price",
+            "description": "Denomination and amount paid. Use amount '0' for complimentary transfers."
+          },
+          "transactionId": {
+            "type": "string",
+            "description": "Optional opaque external payment reference. Examples: Stripe charge ID (ch_...), Lightning Network payment hash, on-chain transaction hash (0x...), PayPal transaction ID. Enables off-chain payment verification.",
+            "maxLength": 512
+          },
+          "platform": {
+            "type": "string",
+            "format": "uri",
+            "description": "Optional URI identifying the marketplace, platform, or application through which the sale was conducted. Provides provenance for the transaction context.",
+            "maxLength": 2048
+          },
+          "note": {
+            "type": "string",
+            "description": "Optional seller-authored note about the transaction (e.g. edition number, batch reference, fulfilment details). Not a legal document.",
+            "maxLength": 1000
+          },
+          "purchasedAt": {
             "type": "string",
             "format": "datetime",
-            "description": "Timestamp of when the purchase was initiated."
-          },
-          "completedAt": {
-            "type": "string",
-            "format": "datetime",
-            "description": "Timestamp of when the purchase reached a terminal state."
+            "description": "ISO 8601 datetime at which the transaction was completed. Should reflect the time of payment confirmation, not record creation."
           }
+        }
+      }
+    },
+    "price": {
+      "type": "object",
+      "description": "A monetary amount in a specified currency or token.",
+      "required": ["amount", "currency"],
+      "properties": {
+        "amount": {
+          "type": "string",
+          "description": "Decimal string representation of the amount to avoid floating-point precision loss. Examples: '9.99', '0', '1500.00', '0.000042'. Negative values are not permitted.",
+          "maxLength": 32
+        },
+        "currency": {
+          "type": "string",
+          "description": "ISO 4217 fiat currency code (USD, EUR, GBP) or a token identifier for digital assets (USDC, ETH, BTC). Case-insensitive for fiat; case-sensitive for tokens.",
+          "maxLength": 20
         }
       }
     }

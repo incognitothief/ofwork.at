@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "DM Sans", sans-serif;
+  --font-serif: "Instrument Serif", serif;
+  --font-mono: "DM Mono", monospace;
+
+  --color-ink: #0f0e0c;
+  --color-ink-2: #3a3832;
+  --color-ink-3: #7a7670;
+  --color-ink-4: #b0aca5;
+  --color-paper: #f7f5f0;
+  --color-paper-2: #eeeae3;
+  --color-paper-3: #e4dfd6;
+  --color-rule: #d4cfc6;
+  --color-accent: #1a4a2e;
+  --color-accent-2: #2d7a4f;
+  --color-accent-light: #e8f3ed;
+  --color-teal: #0f4a46;
+  --color-teal-light: #e5f0ef;
+  --color-coral: #8b2a1a;
+  --color-coral-light: #f5ebe8;
+  --color-purple: #2e1a6b;
+  --color-purple-light: #eeebf7;
+  --color-amber: #5a3a08;
+  --color-amber-light: #fdf3e0;
+}
+
+html { scroll-behavior: smooth; }
+
+/* Step counter */
+.steps { counter-reset: step; }
+.step { counter-increment: step; }
+.step::before {
+  content: counter(step);
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; flex-shrink: 0; margin-top: 2px;
+  border-radius: 50%; background: #0f0e0c; color: #eeeae3;
+  font-family: 'DM Mono', monospace; font-size: 13px;
+}
+
+/* Sidebar scrollbar */
+.sidebar-scroll::-webkit-scrollbar { width: 4px; }
+.sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+.sidebar-scroll::-webkit-scrollbar-thumb { background: #2a2925; border-radius: 2px; }
+
+/* Field table row hover */
+.field-table tr:hover td { background: #eeeae3; }
+
+/* Sidebar nav active states */
+.nav-link.active { color: #e8e4dc; border-left-color: #2d7a4f; }
+.nav-link.lex-proof.active   { border-left-color: #0f4a46; }
+.nav-link.lex-purchase.active { border-left-color: #2e1a6b; }
+.nav-link.lex-consent.active  { border-left-color: #8b2a1a; }
+.nav-link.lex-aipolicy.active { border-left-color: #5a3a08; }

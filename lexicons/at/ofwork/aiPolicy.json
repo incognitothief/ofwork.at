@@ -1,0 +1,130 @@
+{
+  "lexicon": 1,
+  "id": "at.ofwork.aiPolicy",
+  "revision": 1,
+  "description": "Expresses a creator's machine-readable preference regarding AI/ML consumption of a specific artifact. This record is intentionally separate from at.ofwork.proof so that AI preferences can be updated or revoked without invalidating the artifact's provenance chain. Deletion of an aiPolicy record constitutes revocation. Must be stored in the same repo as the referenced proof.",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A creator-issued statement of AI consumption preferences for a specific artifact. Written into the creator's own AT Proto repo. To revoke, delete this record — verifiers treat absence of an aiPolicy record as 'unspecified'. Only one aiPolicy record should exist per proof at any time; if multiple exist, verifiers MUST use the most recently created one (by createdAt).",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": [
+          "proofRef",
+          "trainingAllowed",
+          "inferenceAllowed",
+          "createdAt"
+        ],
+        "properties": {
+          "proofRef": {
+            "type": "ref",
+            "ref": "com.atproto.repo.strongRef",
+            "description": "Immutable strong reference (AT URI + CID) to the at.ofwork.proof record this policy applies to. The CID pins the proof at a specific version. The repo DID of this policy record MUST match the signerDid in the referenced proof — creators may only set AI policy for artifacts they themselves attested."
+          },
+          "trainingAllowed": {
+            "type": "string",
+            "knownValues": ["yes", "no", "conditional"],
+            "description": "Whether this artifact may be used in AI/ML training datasets. 'yes': unrestricted use in training. 'no': explicitly disallowed. 'conditional': allowed only under conditions specified in trainingConditions. Verifiers MUST treat 'conditional' as 'no' unless trainingConditions is present and the verifier's use case satisfies those conditions."
+          },
+          "inferenceAllowed": {
+            "type": "string",
+            "knownValues": ["yes", "no", "conditional"],
+            "description": "Whether AI/ML systems may use this artifact during inference (e.g. as retrieval-augmented context, few-shot examples, or style references). 'yes': unrestricted. 'no': explicitly disallowed. 'conditional': allowed only under conditions specified in inferenceConditions."
+          },
+          "indexingAllowed": {
+            "type": "string",
+            "knownValues": ["yes", "no"],
+            "description": "Whether AI crawlers and search indexers may index this artifact for discovery purposes. Distinct from training and inference — a creator may allow indexing while disallowing training. Defaults to 'yes' if omitted.",
+            "default": "yes"
+          },
+          "generativeOutputAllowed": {
+            "type": "string",
+            "knownValues": ["yes", "no", "conditional"],
+            "description": "Whether AI systems may produce outputs that are stylistically derived from, or substantially similar to, this artifact. Addresses style mimicry and derivative generation. Defaults to 'no' if omitted.",
+            "default": "no"
+          },
+          "trainingConditions": {
+            "type": "string",
+            "description": "Required when trainingAllowed is 'conditional'. Plain-text description of the conditions under which training use is permitted (e.g. 'non-commercial research only', 'attribution required', 'academic institutions only'). Human-readable; not machine-parsed. Max 2000 chars.",
+            "maxLength": 2000
+          },
+          "inferenceConditions": {
+            "type": "string",
+            "description": "Required when inferenceAllowed is 'conditional'. Plain-text description of inference use conditions. Human-readable; not machine-parsed. Max 2000 chars.",
+            "maxLength": 2000
+          },
+          "optOutRegistries": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Optional list of URIs pointing to AI opt-out registries or do-not-train lists where this artifact's creator is registered (e.g. Spawning's Have I Been Trained registry, Adobe's opt-out list). Verifiers may check these registries for additional context. Max 10 entries.",
+            "maxLength": 10
+          },
+          "robotsTxtEquivalent": {
+            "type": "string",
+            "description": "Optional robots.txt-style directive string for AI agents that understand that convention. Example: 'User-agent: * Disallow: /train Disallow: /generate'. Informational only — the structured fields above are authoritative. Max 500 chars.",
+            "maxLength": 500
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "ISO 8601 datetime at which this policy was stated. When multiple aiPolicy records exist for the same proof, the one with the latest createdAt is considered current."
+          }
+        }
+      }
+    },
+    "allowanceValue": {
+      "type": "token",
+      "description": "Enumeration of allowance states used in trainingAllowed, inferenceAllowed, indexingAllowed, and generativeOutputAllowed.",
+      "knownValues": ["yes", "no", "conditional"]
+    },
+    "policyStatus": {
+      "type": "object",
+      "description": "Non-stored helper type describing the resolved AI policy for an artifact, as computed by a verifier after fetching and evaluating all aiPolicy records for a given proof. Used in client tooling and verification SDKs.",
+      "required": [
+        "proofUri",
+        "resolved",
+        "trainingAllowed",
+        "inferenceAllowed"
+      ],
+      "properties": {
+        "proofUri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "resolved": {
+          "type": "boolean",
+          "description": "True if an aiPolicy record was found for this proof. False means no policy exists — the creator has not expressed a preference."
+        },
+        "trainingAllowed": {
+          "type": "string",
+          "knownValues": ["yes", "no", "conditional", "unspecified"]
+        },
+        "inferenceAllowed": {
+          "type": "string",
+          "knownValues": ["yes", "no", "conditional", "unspecified"]
+        },
+        "indexingAllowed": {
+          "type": "string",
+          "knownValues": ["yes", "no", "unspecified"]
+        },
+        "generativeOutputAllowed": {
+          "type": "string",
+          "knownValues": ["yes", "no", "conditional", "unspecified"]
+        },
+        "policyRecordUri": {
+          "type": "string",
+          "format": "at-uri",
+          "description": "AT URI of the aiPolicy record used to resolve this status. Absent if resolved is false."
+        },
+        "checkedAt": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    }
+  }
+}

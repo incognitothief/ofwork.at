@@ -1,59 +1,126 @@
 {
   "lexicon": 1,
   "id": "at.ofwork.consent",
+  "revision": 1,
+  "description": "Records the licensing terms granted to a buyer at the time of purchase. Consent is always subordinate to a purchase record — a consent without a valid purchase is semantically invalid. Because license terms may differ across sales of the same artifact, consent is anchored to the purchase, not directly to the proof.",
   "defs": {
     "main": {
       "type": "record",
-      "description": "A consent record expressing explicit agreement by a DID holder to specific terms, policies, or conditions tied to a subject resource.",
+      "description": "A seller-issued license grant pegged to a specific purchase. Must be stored in the seller's repo. The purchaseRef MUST use a strong ref to ensure the license is immutably bound to the exact purchase record at time of issuance.",
       "key": "tid",
       "record": {
         "type": "object",
-        "required": ["subject", "terms", "scope", "grantedAt"],
+        "required": [
+          "purchaseRef",
+          "licenseType",
+          "scope",
+          "transferable",
+          "grantedAt"
+        ],
         "properties": {
-          "subject": {
-            "type": "string",
-            "format": "at-uri",
-            "description": "AT-URI of the resource this consent applies to (e.g. a listing, purchase, or service)."
+          "purchaseRef": {
+            "type": "ref",
+            "ref": "com.atproto.repo.strongRef",
+            "description": "Immutable strong reference (AT URI + CID) to the at.ofwork.purchase record this consent accompanies. Verifiers MUST resolve this ref and confirm the purchase's buyerDid matches the entity claiming the license."
           },
-          "terms": {
+          "licenseType": {
+            "type": "string",
+            "knownValues": [
+              "all-rights-reserved",
+              "cc-by-4.0",
+              "cc-by-sa-4.0",
+              "cc-by-nc-4.0",
+              "cc-by-nc-sa-4.0",
+              "cc-by-nd-4.0",
+              "cc-by-nc-nd-4.0",
+              "cc0-1.0",
+              "custom"
+            ],
+            "description": "Well-known license token identifying the terms under which the artifact is licensed to the buyer. Use 'custom' when a bespoke license applies and set licenseUri to point to the full text. 'all-rights-reserved' means the buyer receives only the usage rights enumerated in scope, with all other rights retained by the seller.",
+            "maxLength": 64
+          },
+          "licenseUri": {
             "type": "string",
             "format": "uri",
-            "description": "URI pointing to the human-readable terms or policy being consented to."
-          },
-          "termsVersion": {
-            "type": "string",
-            "description": "Version identifier of the terms document at time of consent."
+            "description": "Required when licenseType is 'custom'. MUST point to the canonical, immutable text of the license. Use content-addressed URIs (IPFS CID, Arweave TX) where possible to prevent post-hoc modification. HTTPS URLs are acceptable but carry mutability risk.",
+            "maxLength": 2048
           },
           "scope": {
             "type": "array",
-            "description": "Explicit list of permissions or actions being consented to.",
             "items": {
-              "type": "string"
+              "type": "string",
+              "knownValues": [
+                "personal",
+                "commercial",
+                "editorial",
+                "broadcast",
+                "derivative",
+                "ai-training",
+                "resale"
+              ]
             },
-            "maxLength": 32
+            "description": "Enumerated permitted-use categories granted to the buyer. The absence of a scope value means that use is NOT granted. 'personal': private, non-commercial display and enjoyment. 'commercial': use in revenue-generating contexts. 'editorial': use in news, journalism, commentary. 'broadcast': distribution over radio, TV, streaming platforms. 'derivative': creation of derivative works (remixes, adaptations). 'ai-training': inclusion in AI/ML training datasets. 'resale': buyer may re-sell the artifact or sub-license it."
           },
-          "grantedAt": {
+          "territory": {
             "type": "string",
-            "format": "datetime",
-            "description": "Timestamp when consent was given."
+            "description": "Jurisdiction in which the license applies. Use ISO 3166-1 alpha-2 country codes (US, GB, DE) for country-specific grants, or the string 'worldwide' for universal grants. Omit to default to 'worldwide'.",
+            "maxLength": 64
+          },
+          "transferable": {
+            "type": "boolean",
+            "description": "Whether the buyer may assign or sublicense these rights to a third party. When true, the buyer may themselves issue at.ofwork.consent records for sub-licenses. When false, the license is personal to the buyerDid in the referenced purchase."
           },
           "expiresAt": {
             "type": "string",
             "format": "datetime",
-            "description": "Optional timestamp after which this consent is no longer valid."
+            "description": "Optional expiry datetime for the license grant. Omit for perpetual grants. Verifiers MUST treat expired consents as invalid regardless of record existence."
           },
-          "revokedAt": {
+          "revocationUri": {
+            "type": "string",
+            "format": "uri",
+            "description": "Optional URI at which revocation status can be checked. If present, verifiers SHOULD fetch this endpoint before accepting the consent as valid. A 200 response with body 'valid' indicates the license is in force; any other response indicates revocation.",
+            "maxLength": 2048
+          },
+          "conditions": {
+            "type": "string",
+            "description": "Optional plain-text description of additional conditions or restrictions not captured by scope or licenseType. Not machine-readable; for human interpretation only.",
+            "maxLength": 2000
+          },
+          "grantedAt": {
             "type": "string",
             "format": "datetime",
-            "description": "Timestamp of revocation, if consent has been withdrawn."
-          },
-          "proofRef": {
-            "type": "string",
-            "format": "at-uri",
-            "description": "Optional reference to the at.ofwork.proof record that verifies this consent was genuinely granted."
+            "description": "ISO 8601 datetime at which the license was granted. SHOULD match or closely follow the purchasedAt datetime in the referenced purchase record."
           }
         }
       }
+    },
+    "scopeValue": {
+      "type": "token",
+      "description": "Enumeration of recognised scope values for use in client tooling and validation.",
+      "knownValues": [
+        "personal",
+        "commercial",
+        "editorial",
+        "broadcast",
+        "derivative",
+        "ai-training",
+        "resale"
+      ]
+    },
+    "licenseToken": {
+      "type": "token",
+      "description": "Enumeration of recognised licenseType values for use in client tooling and validation.",
+      "knownValues": [
+        "all-rights-reserved",
+        "cc-by-4.0",
+        "cc-by-sa-4.0",
+        "cc-by-nc-4.0",
+        "cc-by-nc-sa-4.0",
+        "cc-by-nd-4.0",
+        "cc-by-nc-nd-4.0",
+        "cc0-1.0",
+        "custom"
+      ]
     }
   }
 }

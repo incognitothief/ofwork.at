@@ -1,63 +1,93 @@
 {
   "lexicon": 1,
   "id": "at.ofwork.proof",
+  "revision": 1,
+  "description": "Anchors a digital artifact to an AT Protocol DID via a content-addressable hash. The creator's signing key attests authorship. A proof record establishes the canonical identity binding between an artifact and its creator — it does not assert ownership, only provenance.",
   "defs": {
     "main": {
       "type": "record",
-      "description": "A proof record that cryptographically or attestationally verifies a claim about a subject resource — e.g. identity, completion, payment, or consent.",
+      "description": "A provenance record binding a digital artifact (identified by CID) to a creator DID. Must be written into the creator's own AT Proto repo; the repo signature implicitly signs the claim.",
       "key": "tid",
       "record": {
         "type": "object",
-        "required": ["type", "subject", "issuer", "claim", "method", "createdAt"],
+        "required": [
+          "artifactCid",
+          "algorithm",
+          "signerDid",
+          "mimeType",
+          "createdAt"
+        ],
         "properties": {
-          "type": {
+          "artifactCid": {
             "type": "string",
-            "knownValues": ["cryptographic", "attestation", "witness", "oracle"],
-            "description": "The category of proof being provided."
-          },
-          "subject": {
-            "type": "string",
-            "format": "at-uri",
-            "description": "AT-URI of the record this proof attests to (e.g. a purchase or consent)."
-          },
-          "issuer": {
-            "type": "string",
-            "format": "did",
-            "description": "DID of the entity issuing or signing this proof."
-          },
-          "claim": {
-            "type": "string",
-            "description": "Human-readable or structured assertion being proven (e.g. 'payment completed', 'identity verified').",
+            "description": "Content Identifier (CID) of the artifact, encoded in DAG-CBOR with base32 multibase prefix. Deterministic: identical bytes always produce the same CID. Must be computed over the raw artifact bytes, not a serialised wrapper.",
             "maxLength": 512
           },
-          "method": {
+          "algorithm": {
             "type": "string",
-            "knownValues": ["did-key", "did-plc", "did-web", "external-signature"],
-            "description": "Cryptographic or verification method used to produce this proof."
+            "knownValues": ["sha2-256", "blake3"],
+            "description": "Hash algorithm used to derive the CID. sha2-256 is the baseline requirement; blake3 is preferred when the verifying party supports it."
           },
-          "value": {
+          "signerDid": {
             "type": "string",
-            "description": "The actual proof payload — e.g. a base64-encoded signature, a hash, or a verifiable credential JWT.",
-            "maxLength": 8192
+            "format": "did",
+            "description": "DID of the entity asserting authorship. MUST match the DID of the AT Proto repo in which this record is stored. Verified by resolving the DID document and checking the repo's commit signature."
           },
-          "evidence": {
-            "type": "array",
-            "description": "Optional list of supporting evidence URIs or CIDs.",
-            "items": {
-              "type": "string"
-            },
-            "maxLength": 16
+          "mimeType": {
+            "type": "string",
+            "description": "IANA media type of the artifact (e.g. image/png, video/mp4, audio/flac, application/pdf). Used by verifiers to apply type-appropriate decoding before hashing.",
+            "maxLength": 128
+          },
+          "title": {
+            "type": "string",
+            "description": "Optional human-readable title for the artifact. Not used in hash computation.",
+            "maxLength": 300
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description of the artifact. Not used in hash computation.",
+            "maxLength": 3000
+          },
+          "metadataUri": {
+            "type": "string",
+            "format": "uri",
+            "description": "Optional URI pointing to extended metadata. May be an AT URI (at://) to a blob record in the creator's repo, or an HTTPS URL to an external metadata document. Not authoritative — the CID is the authoritative identifier.",
+            "maxLength": 2048
+          },
+          "previousProofUri": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "Optional AT URI of a prior at.ofwork.proof record for this artifact. Use when re-attesting a previously published artifact (e.g. after a DID rotation or key migration). Forms a chain of custody.",
+            "maxLength": 2048
           },
           "createdAt": {
             "type": "string",
             "format": "datetime",
-            "description": "Timestamp when this proof was generated."
-          },
-          "expiresAt": {
-            "type": "string",
-            "format": "datetime",
-            "description": "Optional expiry after which this proof should no longer be trusted."
+            "description": "ISO 8601 datetime at which the creator asserts the artifact was produced. May differ from the record's indexed timestamp."
           }
+        }
+      }
+    },
+    "verificationResult": {
+      "type": "object",
+      "description": "Non-stored helper type describing the outcome of verifying a proof record. Used in client tooling.",
+      "required": ["cidMatch", "didResolved", "signatureValid"],
+      "properties": {
+        "cidMatch": {
+          "type": "boolean",
+          "description": "True if recomputing the artifact CID from the raw bytes matches the stored artifactCid."
+        },
+        "didResolved": {
+          "type": "boolean",
+          "description": "True if the signerDid resolved successfully to a DID document."
+        },
+        "signatureValid": {
+          "type": "boolean",
+          "description": "True if the AT Proto repo commit signature for this record is valid under the signerDid's current verification key."
+        },
+        "checkedAt": {
+          "type": "string",
+          "format": "datetime"
         }
       }
     }
