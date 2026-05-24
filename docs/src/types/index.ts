@@ -27,5 +27,26 @@ export interface NavSection {
 export interface NavLink {
   href: string
   label: string
-  variant?: 'proof' | 'purchase' | 'consent' | 'aipolicy'
+  variant?: 'proof' | 'purchase' | 'consent' | 'aipolicy' | 'id-music' | 'id-av' | 'id-books' | 'id-cross'
+}
+
+export interface IdentifierDef {
+  id: string
+  name: string
+  shortName: string
+  color: 'teal' | 'purple' | 'coral' | 'amber'
+  scope: string
+  issuer: string
+  format: string
+  description: string
+  fields: Field[]
+  notes?: string
+}
+
+export interface IdentifierCategory {
+  id: string
+  label: string
+  overline: string
+  color: 'teal' | 'purple' | 'coral' | 'amber'
+  identifiers: IdentifierDef[]
 }

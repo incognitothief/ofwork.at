@@ -49,7 +49,11 @@ html { scroll-behavior: smooth; }
 
 /* Sidebar nav active states */
 .nav-link.active { color: #e8e4dc; border-left-color: #2d7a4f; }
-.nav-link.lex-proof.active   { border-left-color: #0f4a46; }
+.nav-link.lex-proof.active    { border-left-color: #0f4a46; }
 .nav-link.lex-purchase.active { border-left-color: #2e1a6b; }
 .nav-link.lex-consent.active  { border-left-color: #8b2a1a; }
 .nav-link.lex-aipolicy.active { border-left-color: #5a3a08; }
+.nav-link.id-music.active  { border-left-color: #0f4a46; }
+.nav-link.id-av.active     { border-left-color: #2e1a6b; }
+.nav-link.id-books.active  { border-left-color: #8b2a1a; }
+.nav-link.id-cross.active  { border-left-color: #5a3a08; }

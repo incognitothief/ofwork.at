@@ -9,6 +9,10 @@ const variantStyles: Record<string, string> = {
   purchase: 'lex-purchase',
   consent:  'lex-consent',
   aipolicy: 'lex-aipolicy',
+  'id-music':  'id-music',
+  'id-av':     'id-av',
+  'id-books':  'id-books',
+  'id-cross':  'id-cross',
 }
 
 interface NavLinkItemProps {
