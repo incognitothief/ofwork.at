@@ -1,0 +1,59 @@
+{
+  "lexicon": 1,
+  "id": "at.ofwork.consent",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A consent record expressing explicit agreement by a DID holder to specific terms, policies, or conditions tied to a subject resource.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["subject", "terms", "scope", "grantedAt"],
+        "properties": {
+          "subject": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "AT-URI of the resource this consent applies to (e.g. a listing, purchase, or service)."
+          },
+          "terms": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI pointing to the human-readable terms or policy being consented to."
+          },
+          "termsVersion": {
+            "type": "string",
+            "description": "Version identifier of the terms document at time of consent."
+          },
+          "scope": {
+            "type": "array",
+            "description": "Explicit list of permissions or actions being consented to.",
+            "items": {
+              "type": "string"
+            },
+            "maxLength": 32
+          },
+          "grantedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp when consent was given."
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Optional timestamp after which this consent is no longer valid."
+          },
+          "revokedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp of revocation, if consent has been withdrawn."
+          },
+          "proofRef": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "Optional reference to the at.ofwork.proof record that verifies this consent was genuinely granted."
+          }
+        }
+      }
+    }
+  }
+}

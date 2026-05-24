@@ -1,0 +1,65 @@
+{
+  "lexicon": 1,
+  "id": "at.ofwork.proof",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A proof record that cryptographically or attestationally verifies a claim about a subject resource — e.g. identity, completion, payment, or consent.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["type", "subject", "issuer", "claim", "method", "createdAt"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "knownValues": ["cryptographic", "attestation", "witness", "oracle"],
+            "description": "The category of proof being provided."
+          },
+          "subject": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "AT-URI of the record this proof attests to (e.g. a purchase or consent)."
+          },
+          "issuer": {
+            "type": "string",
+            "format": "did",
+            "description": "DID of the entity issuing or signing this proof."
+          },
+          "claim": {
+            "type": "string",
+            "description": "Human-readable or structured assertion being proven (e.g. 'payment completed', 'identity verified').",
+            "maxLength": 512
+          },
+          "method": {
+            "type": "string",
+            "knownValues": ["did-key", "did-plc", "did-web", "external-signature"],
+            "description": "Cryptographic or verification method used to produce this proof."
+          },
+          "value": {
+            "type": "string",
+            "description": "The actual proof payload — e.g. a base64-encoded signature, a hash, or a verifiable credential JWT.",
+            "maxLength": 8192
+          },
+          "evidence": {
+            "type": "array",
+            "description": "Optional list of supporting evidence URIs or CIDs.",
+            "items": {
+              "type": "string"
+            },
+            "maxLength": 16
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp when this proof was generated."
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Optional expiry after which this proof should no longer be trusted."
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "lexicon": 1,
+  "id": "at.ofwork.purchase",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A purchase record representing a completed or pending transaction between a buyer and a seller for a specific work product or service.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["buyer", "seller", "subject", "amount", "currency", "status", "createdAt"],
+        "properties": {
+          "buyer": {
+            "type": "string",
+            "format": "did",
+            "description": "DID of the party making the purchase."
+          },
+          "seller": {
+            "type": "string",
+            "format": "did",
+            "description": "DID of the party receiving payment."
+          },
+          "subject": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "AT-URI of the record being purchased (e.g. a listing, service, or deliverable)."
+          },
+          "amount": {
+            "type": "integer",
+            "description": "Purchase amount in the smallest unit of the given currency (e.g. cents for USD).",
+            "minimum": 0
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217 currency code (e.g. USD, EUR).",
+            "maxLength": 3,
+            "minLength": 3
+          },
+          "status": {
+            "type": "string",
+            "knownValues": ["pending", "completed", "refunded", "disputed", "cancelled"],
+            "description": "Current state of the purchase."
+          },
+          "consentRef": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "Optional reference to the at.ofwork.consent record governing this purchase."
+          },
+          "proofRef": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "Optional reference to the at.ofwork.proof record attesting to this purchase."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp of when the purchase was initiated."
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp of when the purchase reached a terminal state."
+          }
+        }
+      }
+    }
+  }
+}
